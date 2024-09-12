@@ -108,15 +108,17 @@ public class VirtualJoystick : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     void ActivateSkill2()
     {
         Debug.Log("두 번째 스킬 발동!");
-        // 스킬 2 발동 로직
+        anim.SetTrigger("ThrowShuriken");
     }
     void ActivateSkill3()
     {
         Debug.Log("세 번째 스킬 발동!");
+        anim.SetTrigger("Kiss");
     }
 
     void ActivateSkill4()
     {
         Debug.Log("네 번째 스킬 발동!");
+        anim.SetTrigger("Slash");
     }
 }
