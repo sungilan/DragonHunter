@@ -1,153 +1,187 @@
-using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-public abstract class Skill
-{
-    [Header("skill info")]
-    public string skillName;
-    public float skillRange;
-    public float soundRange;
-    public float skillCool;
-    protected float lastUsedTime;
-    //protected NinjaController caster;
-    protected Transform casterTr;
-    public Skill(float skillRange, float soundRange, float skillCool, string skillName)
-    {
-        this.skillName = skillName;
-        this.skillRange = skillRange;
-        this.soundRange = soundRange;
-        this.skillCool = skillCool;
-        this.lastUsedTime = -skillCool; // 처음부터 스킬을 사용할 수 있도록 설정
-
-        //caster = DBManager.instance.myCon;
-        //casterTr = caster.transform;
-    }
-
-    public bool IsOffCooldown()
-    {
-        return Time.time >= lastUsedTime + skillCool;
-    }
-
-    public abstract void UseSkill();
-}
-
 public class SkillManager : Singleton<SkillManager>
 {
-    [SerializeField] private Animator anim;
-    [SerializeField] Button[] skillBtns;
-    private Transform mon;
+    public Animator anim;
+    [SerializeField] private Button attackBtn;
+    [SerializeField] private Button[] skillBtns;
     [SerializeField] private Image[] skillIcons = new Image[3];
     [SerializeField] private GameObject cooltext;
-    private Coroutine coolCor = null;
+    private Coroutine[] coolCoroutines;
     public Skill[] skillSet = new Skill[3];
+
+    private bool comboPossible;
+    private int comboStep;
+    [SerializeField] private BoxCollider weaponCol;
+
     private void Awake()
     {
+        GetSkill(0);
+        coolCoroutines = new Coroutine[skillIcons.Length]; // 각 스킬 아이콘에 대해 쿨타임을 관리할 코루틴 배열 초기화
+
         for (int i = 0; i < skillBtns.Length; i++)
         {
             int index = i; // 클로저 문제를 피하기 위해 임시 변수 사용
             skillBtns[i].onClick.AddListener(() => UseSkill(index));
         }
+        attackBtn.onClick.AddListener(() => NormalAttack());
     }
+    // 애니메이션 이벤트에 추가할 함수들
+
+    // 콤보의 시작점(콤보 입력이 가능하게 해줌)
+    public void ComboPossible()
+    {
+        comboPossible = true;
+    }
+    public void NextAtk()
+    {
+        if (comboStep == 2)
+            {
+                SoundManager.instance.PlaySE("테잇");
+                anim.Play("NormalAttack_B");
+            }
+        if (comboStep == 3)
+            {
+                SoundManager.instance.PlaySE("테잇");
+                anim.Play("NormalAttack_C");
+            }
+        if (comboStep == 4)
+            {
+                SoundManager.instance.PlaySE("토우");
+                anim.Play("NormalAttack_D");
+            }
+        if (comboStep == 5)
+            {
+                SoundManager.instance.PlaySE("필살");
+                anim.Play("NormalAttack_E");
+            }
+    }
+    // 콤보 단계를 초기화 해주는 함수
+    public void ResetCombo()
+    {
+        comboPossible = false;
+        comboStep = 0;
+    }
+
+    // 기본 공격 기능
+    private void NormalAttack()
+    {
+        if (comboStep == 0)
+        {
+            // 최초 입력시 첫번째 공격 애니메이션을 재생
+            SoundManager.instance.PlaySE("이얏");
+            anim.Play("NormalAttack_A");
+            comboStep = 1;
+            return;
+        }
+        if (comboStep != 0)
+        {
+            if (comboPossible)
+            {
+                // 무차별 입력을 방지하기 위해 false로 해줌
+                comboPossible = false;
+                comboStep += 1;
+            }
+        }
+    }
+    public void AttackStart()
+    {
+        weaponCol.enabled = true;
+    }
+    public void AttackEnd()
+    {
+        weaponCol.enabled = false;
+    }
+    public void PlayAttackSound()
+    {
+        SoundManager.instance.PlaySE("검");
+    }
+
     void UseSkill(int index)
     {
-        // index를 사용하여 어떤 스킬을 사용할지 결정
-        Debug.Log($"Skill {index} 사용!");
-        switch (index)
+        if (index < 0 || index >= skillSet.Length)
         {
-            case 0:
-                // 첫 번째 스킬 실행
-                ActivateSkill1();
-                break;
-            case 1:
-                // 두 번째 스킬 실행
-                ActivateSkill2();
-                break;
-            case 2:
-                // 세 번째 스킬 실행
-                ActivateSkill3();
-                break;
-            case 3:
-                // 네 번째 스킬 실행
-                ActivateSkill4();
-                break;
-            default:
-                Debug.Log("Unknown skill.");
-                break;
+            Debug.Log("Invalid skill index.");
+            return;
+        }
+
+        Skill skill = skillSet[index];
+        if (skill != null)
+        {
+            skill.UseSkillIfReady();
+            SkillCool(index);
+        }
+        else
+        {
+            Debug.Log($"Skill {index} is null.");
         }
     }
 
-    void ActivateSkill1()
+    public void SkillCool(int _skillNum)
     {
-        SoundManager.instance.PlaySE("이얏");
-        Debug.Log("첫 번째 스킬 발동!");
-        anim.SetTrigger("Attack");
+        if (_skillNum < 0 || _skillNum >= skillIcons.Length)
+        {
+            Debug.Log("Invalid skill number.");
+            return;
+        }
+
+        // 쿨타임 코루틴이 이미 진행 중이면 기존 코루틴의 fillAmount만 업데이트
+        if (coolCoroutines[_skillNum] != null)
+        {
+            // 재설정 필요 없으므로 return
+            return;
+        }
+
+        skillIcons[_skillNum].fillAmount = 0; // 쿨타임 시작 시 이미지 초기화
+        coolCoroutines[_skillNum] = StartCoroutine(FillCool(_skillNum));
     }
 
-    void ActivateSkill2()
+    private IEnumerator FillCool(int _skillNum)
     {
-        SoundManager.instance.PlaySE("테잇");
-        Debug.Log("두 번째 스킬 발동!");
-        anim.SetTrigger("ThrowShuriken");
-    }
-    void ActivateSkill3()
-    {
-        SoundManager.instance.PlaySE("토우");
-        Debug.Log("세 번째 스킬 발동!");
-        anim.SetTrigger("Kiss");
+        float cooldown = skillSet[_skillNum].skillCool;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < cooldown)
+        {
+            elapsedTime += Time.deltaTime;
+            skillIcons[_skillNum].fillAmount = Mathf.Clamp01(elapsedTime / cooldown);
+            yield return null;
+        }
+
+        skillIcons[_skillNum].fillAmount = 1f;
+        coolCoroutines[_skillNum] = null; // 쿨타임 완료 후 코루틴 참조 제거
     }
 
-    void ActivateSkill4()
-    {
-        SoundManager.instance.PlaySE("필살");
-        Debug.Log("네 번째 스킬 발동!");
-        StartCoroutine(OneShot());
-    }
-    IEnumerator OneShot()
-    {
-        anim.SetTrigger("Slash");
-        mon = GameObject.FindGameObjectWithTag("Monster").transform;
-        Vector3 dir = mon.position - this.gameObject.transform.position;
-        dir.y = 0;
-        dir.Normalize();
-        Vector3 targetPos = mon.position + (dir * 1.2f);
-        this.gameObject.transform.forward = dir;
-        yield return new WaitForSecondsRealtime(1f);
-        //mon.GetComponent<Animator>().SetBool("Dead",true);
-        this.gameObject.transform.position = targetPos;
-    }
-    IEnumerator CoolTimeText()
-    {
-        cooltext.SetActive(true);
-        yield return new WaitForSeconds(3);
-        cooltext.SetActive(false);
-    }
     public Skill[] GetSkill(int _type)
     {
-        //ninjaCon = DBManager.instance.myCon;
+        // 스킬 초기화 예시
         switch (_type)
         {
             case 0:
-                //skillSet[0] = new MeleeAttack(1.2f, 3f, 2f, "닌자도"); //1.3f
-                //skillSet[1] = new Shurican(6f, 6f, 4f, "수리검");
-                //skillSet[2] = new ThrowSomething(6f, 5f, 6f, 0, "돌던지기");
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f, "닌자도");
+                skillSet[1] = new DashAttack(6f, 6f, 4f, "수리검");
+                skillSet[2] = new UltimateAttack(6f, 5f, 6f, "돌던지기");
                 SKillIconSet(0);
+                Debug.Log(skillSet[0].skillName);
+                Debug.Log(skillSet[1].skillName);
+                Debug.Log(skillSet[2].skillName);
                 break;
             case 1:
-                //skillSet[0] = new MeleeAttack(1.2f, 3f, 2f, "쿠나이");
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f, "쿠나이");
                 //skillSet[1] = new TalktoEnemy(1.2f, 0f, 4f, "변장");
                 //skillSet[2] = new ThrowSomething(6f, 3f, 6f, 1, "재채기분말");
                 SKillIconSet(1);
                 break;
             case 2:
-                //skillSet[0] = new MeleeAttack(1.2f, 3f, 2f, "일본도"); //1.4f
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f, "일본도");
                 //skillSet[1] = new SlashBlade(2f, 3f, 18f, "바람가르기");
                 //skillSet[2] = new ThrowSomething(6f, 0f, 0f, 2, "술병");
                 SKillIconSet(2);
                 break;
             default:
-                print("잘못된 스킬 타입입니다.");
+                Debug.Log("잘못된 스킬 타입입니다.");
                 break;
         }
         return skillSet;
@@ -159,24 +193,136 @@ public class SkillManager : Singleton<SkillManager>
         {
             skillIcons[i].sprite = Resources.Load<Sprite>($"Skill_Icon{_type}_{i}");
             skillIcons[i].fillAmount = 1;
-            //if (_type == 1 && i == 1)
-                //lostKimono = true;
         }
     }
-    public void SkillCool(int _skillNum)
+    public IEnumerator CoolText()
     {
-        skillIcons[_skillNum].fillAmount = 0;
-        if (coolCor != null)
-            StopCoroutine(coolCor);
-        coolCor = StartCoroutine(FillCool(_skillNum));
+        cooltext.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        cooltext.SetActive(false);
     }
-    private IEnumerator FillCool(int _skillNum)
+}
+public abstract class Skill
+{
+    [Header("skill info")]
+    public string skillName;
+    public float skillRange;
+    public float soundRange;
+    public float skillCool;
+    protected float lastUsedTime;
+    protected TPSCharacterController caster;
+
+    public Skill(float skillRange, float soundRange, float skillCool, string skillName)
     {
-        while (skillIcons[_skillNum].fillAmount <= 1)
+        this.skillName = skillName;
+        this.skillRange = skillRange;
+        this.soundRange = soundRange;
+        this.skillCool = skillCool;
+        this.lastUsedTime = -skillCool; // 처음부터 스킬을 사용할 수 있도록 설정
+        caster = DataManager.Instance.player;
+    }
+
+    public bool IsOffCooldown()
+    {
+        return Time.time >= lastUsedTime + skillCool;
+    }
+    public void UseSkillIfReady()
+    {
+        if (IsOffCooldown())
         {
-            skillIcons[_skillNum].fillAmount += Time.deltaTime / skillSet[_skillNum].skillCool;
-            yield return null;
+            UseSkill();
+            lastUsedTime = Time.time;
+        }
+        else
+        {
+            SkillManager.Instance.StartCoroutine(SkillManager.Instance.CoolText());
+            Debug.Log($"{skillName} is on cooldown.");
         }
     }
 
+    public abstract void UseSkill();
+    public abstract void ApproachUseSkill();
 }
+
+public class MeleeAttack : Skill
+{
+    public MeleeAttack(float skillRange, float soundRange, float skillCool, string skillName)
+        : base(skillRange, soundRange, skillCool, skillName) { }
+
+    public override void UseSkill()
+    {
+        if (IsOffCooldown())
+        {
+            Debug.Log("MeleeAttack skill used!");
+            SoundManager.instance.PlaySE("테잇");
+            SkillManager.Instance.anim.SetTrigger("Attack");
+            SkillManager.Instance.SkillCool(0);
+        }
+        else
+            Debug.Log("스킬 쿨타임 중");
+    }
+
+    public override void ApproachUseSkill()
+    {
+        if (IsOffCooldown())
+            Debug.Log("스킬 사용 가능");
+        else
+            Debug.Log("스킬 쿨타임 중");
+    }
+}
+
+public class DashAttack : Skill
+{
+    public DashAttack(float skillRange, float soundRange, float skillCool, string skillName)
+        : base(skillRange, soundRange, skillCool, skillName) { }
+
+    public override void UseSkill()
+    {
+        Debug.Log("DashAttack skill used!");
+        SoundManager.instance.PlaySE("토우");
+        SkillManager.Instance.anim.SetTrigger("Attack");
+        SkillManager.Instance.SkillCool(1);
+    }
+
+    public override void ApproachUseSkill()
+    {
+        if (IsOffCooldown())
+            Debug.Log("스킬 사용 가능");
+        else
+            Debug.Log("스킬 쿨타임 중");
+    }
+}
+public class UltimateAttack : Skill
+{
+    public UltimateAttack(float skillRange, float soundRange, float skillCool, string skillName)
+        : base(skillRange, soundRange, skillCool, skillName) { }
+
+    public override void UseSkill()
+    {
+        Debug.Log("UltimateAttack skill used!");
+        SkillManager.Instance.StartCoroutine(OneShot());
+        SkillManager.Instance.SkillCool(2);
+    }
+    IEnumerator OneShot()
+    {
+        SoundManager.instance.PlaySE("필살");
+        SkillManager.Instance.anim.SetTrigger("Slash");
+        Transform mon = GameObject.FindGameObjectWithTag("Monster").transform;
+        Vector3 dir = mon.position - caster.transform.position;
+        dir.y = 0;
+        dir.Normalize();
+        Vector3 targetPos = mon.position + (dir * 1.2f);
+        caster.transform.forward = dir;
+        yield return new WaitForSecondsRealtime(1f);
+        caster.transform.position = targetPos;
+    }
+
+    public override void ApproachUseSkill()
+    {
+        if (IsOffCooldown())
+            Debug.Log("스킬 사용 가능");
+        else
+            Debug.Log("스킬 쿨타임 중");
+    }
+}
+
