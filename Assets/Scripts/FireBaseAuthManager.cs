@@ -5,6 +5,7 @@ using Firebase.Auth;
 using Firebase.Database;
 using System;
 using Firebase;
+using Firebase.Extensions;
 
 public class FireBaseAuthManager : Singleton<FireBaseAuthManager>
 {
@@ -80,28 +81,31 @@ public class FireBaseAuthManager : Singleton<FireBaseAuthManager>
             }
             AuthResult authResult = task.Result;
             FirebaseUser user = authResult.User;
-            Debug.Log("회원가입 완료");
+            Debug.Log(user.UserId + "회원가입 완료");
+            Debug.Log("닉네임 : " + nickname);
             // 닉네임을 Realtime Database에 저장
-            SaveUserProfile(user.UserId, nickname);
+            SaveUserProfile(nickname);
         });
     }
-    private void SaveUserProfile(string userId, string nickname)
+    private void SaveUserProfile(string nickname)
     {
-        UserProfile profile = new UserProfile { Nickname = nickname };
-        databaseReference.Child("users").Child(userId).SetValueAsync(profile).ContinueWith(task =>
-        {
-            if (task.IsCanceled)
-            {
-                Debug.LogError("닉네임 저장 취소");
-                return;
-            }
-            if (task.IsFaulted)
-            {
-                Debug.LogError("닉네임 저장 실패");
-                return;
-            }
-            Debug.Log("닉네임 저장 완료");
-        });
+        Debug.Log("닉네임 저장");
+        //nickname = JsonUtility.ToJson(nickname);
+        databaseReference.Child("Users").Child(user.UserId).Child("NickName").SetValueAsync(nickname);
+            //.ContinueWithOnMainThread(task =>
+        //{
+        //    if (task.IsCanceled)
+        //    {
+        //        Debug.LogError("닉네임 저장 취소");
+        //        return;
+        //    }
+        //    if (task.IsFaulted)
+        //    {
+        //        Debug.LogError("닉네임 저장 실패");
+        //        return;
+        //    }
+        Debug.Log("닉네임 저장 완료");
+        //});
     }
     public void LogIn(string email, string password)
     {
@@ -127,9 +131,4 @@ public class FireBaseAuthManager : Singleton<FireBaseAuthManager>
     {
         auth.SignOut();
     }
-}
-[System.Serializable]
-public class UserProfile
-{
-    public string Nickname;
 }

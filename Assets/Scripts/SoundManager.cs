@@ -9,25 +9,8 @@ public class Sound
     public AudioClip clip; // 곡
 }
 
-public class SoundManager : MonoBehaviour
+public class SoundManager : Singleton<SoundManager>
 {
-    static public SoundManager instance; // 자기 자신을 인스턴스로 만듦
-
-    #region Singleton
-    void Awake()
-    {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-            SceneManager.sceneLoaded += OnSceneLoaded; // 씬이 로드될 때 호출
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-    #endregion
 
     [Header("오디오클립")]
     [SerializeField]

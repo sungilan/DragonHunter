@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class VirtualJoystick : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    [SerializeField] private TPSCharacterController controller;
+    [SerializeField] private CharacterController controller;
     [SerializeField] private RectTransform lever;
     private RectTransform rectTransform;
     [SerializeField, Range(10, 150)] private float leverRange;

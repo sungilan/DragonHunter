@@ -46787,7 +46787,7 @@ AnimationClip:
   m_Events:
   - time: 0
     functionName: PlayAttackSound
-    data: 
+    data: "\uAC80"
     objectReferenceParameter: {fileID: 11500000, guid: 62495c05a37d8b641a3fbc4947290c65,
       type: 3}
     floatParameter: 0

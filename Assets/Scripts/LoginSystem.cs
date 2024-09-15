@@ -23,7 +23,7 @@ public class LoginSystem : MonoBehaviour
         {
             // 로그인 성공 시
             outputText.text = "LogIn : " + FireBaseAuthManager.Instance.UserId;
-            SceneManager.LoadScene("Main"); // 로그인 성공 후 'Main' 씬으로 이동
+            LoadingManager.Instance.LoadScene(2);
         }
         else
         {
