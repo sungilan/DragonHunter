@@ -1,0 +1,14 @@
+[
+  {
+    "id": "100",
+    "sprite_name": "mission_btn_icon_soulgem"
+  },
+  {
+    "id": "101",
+    "sprite_name": "mission_btn_icon_gem"
+  },
+  {
+    "id": "102",
+    "sprite_name": "mission_btn_icon_coin"
+  }
+]

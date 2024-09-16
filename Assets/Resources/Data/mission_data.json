@@ -1,0 +1,42 @@
+[
+  {
+    "id": "0",
+    "sprite_name": "mission_img_collect",
+    "mission_name": "골드를 {0} 모으세요",
+    "goal_val": "10000",
+    "reward_id": "100",
+    "reward_val": "5"
+  },
+  {
+    "id": "1",
+    "sprite_name": "mission_img_goal",
+    "mission_name": "게임을 {0}시간 플레이하세요",
+    "goal_val": "500",
+    "reward_id": "101",
+    "reward_val": "10"
+  },
+  {
+    "id": "2",
+    "sprite_name": "mission_img_kill",
+    "mission_name": "적을 {0}명 처치하세요",
+    "goal_val": "300",
+    "reward_id": "102",
+    "reward_val": "300"
+  },
+  {
+    "id": "3",
+    "sprite_name": "mission_img_key",
+    "mission_name": "새 에피소드 오픈",
+    "goal_val": "1",
+    "reward_id": "101",
+    "reward_val": "5"
+  },
+  {
+    "id": "4",
+    "sprite_name": "mission_img_crown",
+    "mission_name": "{0}레벨에 도달하세요",
+    "goal_val": "10",
+    "reward_id": "101",
+    "reward_val": "10"
+  }
+]

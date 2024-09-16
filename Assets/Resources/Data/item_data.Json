@@ -1,0 +1,92 @@
+[
+  {
+    "id": 200,
+    "sprite_name": "item_btn_icon_sword",
+    "item_name": " 검",
+    "cost": 200
+  },
+  {
+    "id": 201,
+    "sprite_name": "item_btn_icon_axe",
+    "item_name": "도끼",
+    "cost": 250
+  },
+  {
+    "id": 202,
+    "sprite_name": "item_btn_icon_bow",
+    "item_name": "활",
+    "cost": 220
+  },
+  {
+    "id": 203,
+    "sprite_name": "item_btn_icon_armor",
+    "item_name": "갑옷",
+    "cost": 180
+  },
+  {
+    "id": 204,
+    "sprite_name": "item_btn_icon_helmet",
+    "item_name": "투구",
+    "cost": 150
+  },
+  {
+    "id": 205,
+    "sprite_name": "item_btn_icon_pants",
+    "item_name": "바지",
+    "cost": 120
+  },
+  {
+    "id": 206,
+    "sprite_name": "item_btn_icon_necklaces",
+    "item_name": "목걸이",
+    "cost": 250
+  },
+  {
+    "id": 207,
+    "sprite_name": "item_btn_icon_rings",
+    "item_name": "반지",
+    "cost": 300
+  },
+  {
+    "id": 208,
+    "sprite_name": "item_btn_icon_belts",
+    "item_name": "벨트",
+    "cost": 200
+  },
+  {
+    "id": 209,
+    "sprite_name": "item_btn_icon_boots",
+    "item_name": "부츠",
+    "cost": 210
+  },
+  {
+    "id": 210,
+    "sprite_name": "item_btn_icon_bracers",
+    "item_name": "손목보호대",
+    "cost": 230
+  },
+  {
+    "id": 211,
+    "sprite_name": "item_btn_icon_cloaks",
+    "item_name": "망토",
+    "cost": 320
+  },
+  {
+    "id": 212,
+    "sprite_name": "item_btn_icon_shield",
+    "item_name": "방패",
+    "cost": 150
+  },
+  {
+    "id": 213,
+    "sprite_name": "item_btn_icon_hpposion",
+    "item_name": "빨간 물약",
+    "cost": 50
+  },
+  {
+    "id": 214,
+    "sprite_name": "item_btn_icon_mpposion",
+    "item_name": "파란 물약",
+    "cost": 40
+  }
+]

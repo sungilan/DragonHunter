@@ -1,11 +1,12 @@
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using Firebase.Database;
 using Firebase.Auth;
 using System;
 using Firebase;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 public class DataManager : Singleton<DataManager>
 {
@@ -19,6 +20,8 @@ public class DataManager : Singleton<DataManager>
     public float criticalHitMultiplier = 1.5f;
 
     [SerializeField] private TextMeshProUGUI nicknameText;
+
+    private Dictionary<int, RawData> dicData = new Dictionary<int, RawData>();
 
     private void Start()
     {
@@ -61,8 +64,20 @@ public class DataManager : Singleton<DataManager>
             }
         });
     }
-    private void Update()
+
+    public void LoadData<T>(string path) where T : RawData
     {
-        //nicknameText.text = playerNickname;
+        var textAsset = Resources.Load<TextAsset>(path);
+        var json = textAsset.text;
+        var arrData = JsonConvert.DeserializeObject<T[]>(json);
+        foreach (var data in arrData) 
+        {
+            this.dicData.Add(data.id, (T)data);
+        }
+    }
+    public T GetData<T>(int key) where T : RawData
+    {
+        var data = this.dicData[key];
+        return (T)data;
     }
 }
