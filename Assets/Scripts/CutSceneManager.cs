@@ -30,17 +30,21 @@ public class CutSceneManager : MonoBehaviour
         {
             PlayLoseCutscene();
         }
-        
     }
 
-    private void PlayWinCutscene()
+    public void PlayWinCutscene()
     {
         pd.Play(ta[0]);
         hasPlayedCutscene = true; // 타임라인이 재생되었음을 기록
     }
-    private void PlayLoseCutscene()
+    public void PlayLoseCutscene()
     {
         pd.Play(ta[1]);
+        hasPlayedCutscene = true; // 타임라인이 재생되었음을 기록
+    }
+    public void PlayBossCutscene()
+    {
+        pd.Play(ta[2]);
         hasPlayedCutscene = true; // 타임라인이 재생되었음을 기록
     }
 

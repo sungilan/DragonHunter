@@ -6,9 +6,17 @@ using UnityEngine.UI;
 
 public class PlayerStatus : MonoBehaviour
 {
-
+    [SerializeField] private Image hpBarIMG;
+    [SerializeField] private Image backHpBarIMG;
+    [SerializeField] private string[] sound_Hurt;
+    [SerializeField] private string[] sound_Death;
+    [SerializeField] private AnimationClip[] hurtAnimations;
+    [SerializeField] private AnimationClip[] deathAnimations;
+    [SerializeField] private Animator anim;
+    [SerializeField] private WorldCanvasController worldCanvasController;
+    [SerializeField] private CutSceneManager cutSceneManager;
     // 체력
-    public int hp; //최대체력
+    public int maxHp; //최대체력
     public int currentHp; //현재체력
 
     // 마나
@@ -64,7 +72,7 @@ public class PlayerStatus : MonoBehaviour
     // Use this for initialization
     void Start () 
     {
-        currentHp = hp;
+        currentHp = maxHp;
         currentDp = dp;
         currentSp = sp;
         currentHungry = hungry;
@@ -79,7 +87,9 @@ public class PlayerStatus : MonoBehaviour
         Thirsty();*/
         SPRechargeTime();
         SPRecover();
-	}
+        GaugeUpdate();
+        if (currentHp <= 0) { StartCoroutine(Death()); }
+    }
 
     private void SPRechargeTime()
     {
@@ -135,28 +145,58 @@ public class PlayerStatus : MonoBehaviour
 
     public void IncreaseHP(int _count)
     {
-        if (currentHp + _count < hp)
+        if (currentHp + _count < maxHp)
             currentHp += _count;
         else
-            currentHp = hp;
+            currentHp = maxHp;
     }
-    public void DecreaseHP(int _count)
+    public void TakeDamage(int _dmg, bool isCritical)
     {
-        if (!isDead)
-        {
-            if (currentDp > 0)
-            {
-                DecreaseDP(_count);
-                return;
-            }
-            currentHp -= _count;
+        if (isDead) return;
+        StartCoroutine(TakeDamageCorutine(_dmg, isCritical));
+    }
 
-            if (currentHp <= 0)
-            {
-                currentHp = 0;
-                isDead = true;
-            }
+    public IEnumerator TakeDamageCorutine(int _dmg, bool isCritical)
+    {
+        if (currentHp > 0)
+        {
+            worldCanvasController.AddDamageText(this.transform.position + new Vector3(0, 1.5f, 0), _dmg, isCritical);
+            currentHp -= _dmg;
+            if (currentHp <= 0) yield break;
+
+            // 랜덤으로 피격음 재생
+            int _random = Random.Range(0, sound_Hurt.Length);
+            SoundManager.Instance.PlaySE(sound_Hurt[_random]);
+
+            // 랜덤으로 애니메이션 재생
+            int _randomAnim = Random.Range(0, hurtAnimations.Length);
+            anim.Play(hurtAnimations[_randomAnim].name);
         }
+        else
+        {
+            StartCoroutine(Death());
+        }
+    }
+
+    private IEnumerator Death()
+    {
+        currentHp = 0;
+        GaugeUpdate();
+        isDead = true;
+
+        // 랜덤으로 사망음 재생
+        int _random = Random.Range(0, sound_Death.Length);
+        SoundManager.Instance.PlaySE(sound_Death[_random]);
+
+        // 랜덤으로 애니메이션 재생
+        int _randomAnim = Random.Range(0, deathAnimations.Length);
+        anim.Play(deathAnimations[_randomAnim].name);
+
+        this.enabled = false;
+        yield return new WaitForSeconds(4f);
+        Destroy(gameObject);
+
+        cutSceneManager.isLose = true;
     }
 
      public void IncreaseSP(int _count)
@@ -169,7 +209,7 @@ public class PlayerStatus : MonoBehaviour
 
     public void IncreaseDP(int _count)
     {
-        if (currentDp + _count < hp)
+        if (currentDp + _count < maxHp)
             currentDp += _count;
         else
             currentDp = dp;
@@ -229,5 +269,27 @@ public class PlayerStatus : MonoBehaviour
     public int GetCurrentSP()
     {
         return currentSp;
+    }
+    private void GaugeUpdate()
+    {
+        hpBarIMG.fillAmount = Mathf.Lerp(hpBarIMG.fillAmount, (float)currentHp / (float)maxHp, Time.deltaTime * 5f);
+        StartCoroutine(UpdateBackHp());
+    }
+
+    IEnumerator UpdateBackHp()
+    {
+        yield return new WaitForSeconds(0.1f);
+        float targetBackFillAmount = hpBarIMG.fillAmount;
+        float initialBackFillAmount = backHpBarIMG.fillAmount;
+        float elapsedTime = 0f;
+        float duration = 1f;
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float newBackFillAmount = Mathf.LerpUnclamped(initialBackFillAmount, targetBackFillAmount, elapsedTime / duration);
+            backHpBarIMG.fillAmount = newBackFillAmount;
+            yield return null;
+        }
+        backHpBarIMG.fillAmount = targetBackFillAmount;
     }
 }

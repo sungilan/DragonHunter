@@ -23,7 +23,7 @@ public class Enemy : MonoBehaviour
     // 상태 변수
     private bool isWalking;
     private bool isRunning;
-    [SerializeField]private bool isDead;
+    [SerializeField] protected bool isDead;
     private bool isStun;
 
     [Header("Times")]
@@ -34,13 +34,12 @@ public class Enemy : MonoBehaviour
 
     // 필요한 컴포넌트
     [Header("Components")]
-    [SerializeField] private Animator anim;
+    [SerializeField] protected Animator anim;
     [SerializeField] private Rigidbody rigid;
     [SerializeField] private AudioClip[] sound_Nomal;
     [SerializeField] private string[] sound_Hurt;
     [SerializeField] private string[] sound_Death;
     [SerializeField] private string sound_Attack;
-    public int damage;
     private NavMeshAgent agent;
     private FieldOfViewAngle fieldOfViewAngle;
 
@@ -51,6 +50,11 @@ public class Enemy : MonoBehaviour
 
     [SerializeField] private WorldCanvasController worldCanvasController;
     [SerializeField] private Camera mainCamera;
+
+    public int minAtk = 10;
+    public int maxAtk = 20;
+    public float criticalHitChance = 0.2f; // 20% 확률로 치명타 발생
+    public float criticalHitMultiplier = 1.5f;
     private void Start()
     {
         _state = State.Idle;
@@ -150,14 +154,16 @@ public class Enemy : MonoBehaviour
 
     private IEnumerator PerformAttack(PlayerStatus playerStatus)
     {
-        Debug.Log("공격");
+        int damage = Random.Range(minAtk, maxAtk);
+
+        bool isCriticalHit = Random.value < criticalHitChance;
         isStun = true;
         anim.SetTrigger("Attacking");
         SoundManager.Instance.PlaySE(sound_Attack);
         yield return new WaitForSeconds(1f); // 공격 딜레이
         if (Vector3.Distance(transform.position, playerTransform.position) < agent.stoppingDistance)
         {
-            playerStatus.DecreaseHP(damage); // 플레이어에게 데미지
+            playerStatus.TakeDamage(damage, isCriticalHit); // 플레이어에게 데미지
         }
         isStun = false;
         _state = State.Idle; // 공격 후 다시 대기 상태로 전환

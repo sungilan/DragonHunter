@@ -8,6 +8,7 @@ public class ShopListItem : MonoBehaviour
     public Image icon;
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI costText;
+    public Button btnBuy;
 
     public void Init(int id, string sprite_name,string item_name, int cost)
     {

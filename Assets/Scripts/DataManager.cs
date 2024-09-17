@@ -10,16 +10,29 @@ using System.Collections.Generic;
 
 public class DataManager : Singleton<DataManager>
 {
-    public CharacterController player;
-    [SerializeField] private string playerNickname;
+    //public CharacterController player;
+    public string playerNickname;
     private DatabaseReference databaseReference;
     private FirebaseAuth auth;
     public int minAtk = 10;
     public int maxAtk = 20;
     public float criticalHitChance = 0.2f; // 20% 확률로 치명타 발생
     public float criticalHitMultiplier = 1.5f;
+    private int _gold;
+    public delegate void GoldUpdated(int newGold);
+    public static event GoldUpdated OnGoldUpdated;
 
-    [SerializeField] private TextMeshProUGUI nicknameText;
+    // gold의 get/set 프로퍼티
+    public int gold
+    {
+        get { return _gold; }
+        set
+        {
+            _gold = value;
+            // gold가 변경될 때 OnGoldUpdated 이벤트를 발생시킵니다.
+            OnGoldUpdated?.Invoke(_gold);
+        }
+    }
 
     private Dictionary<int, RawData> dicData = new Dictionary<int, RawData>();
 
@@ -59,7 +72,6 @@ public class DataManager : Singleton<DataManager>
                     IDictionary Userdata = (IDictionary)data.Value;
                     Debug.Log("닉네임 : " + Userdata["NickName"]);
                     playerNickname = Userdata["NickName"].ToString();
-                    nicknameText.text = playerNickname;
                 }
             }
         });
@@ -72,7 +84,8 @@ public class DataManager : Singleton<DataManager>
         var arrData = JsonConvert.DeserializeObject<T[]>(json);
         foreach (var data in arrData) 
         {
-            this.dicData.Add(data.id, (T)data);
+            //this.dicData.Add(data.id, (T)data);
+            this.dicData[data.id] = (T)data; //키가 중복되면 덮어쓴다.
         }
     }
     public T GetData<T>(int key) where T : RawData

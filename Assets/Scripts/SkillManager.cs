@@ -258,7 +258,7 @@ public abstract class Skill
         this.skillDamage = skillDamage;
         this.skillCool = skillCool;
         this.lastUsedTime = -skillCool; // 처음부터 스킬을 사용할 수 있도록 설정
-        caster = DataManager.Instance.player.characterBody;
+        caster = SkillManager.Instance.transform;
     }
 
     public bool IsOffCooldown()
@@ -344,9 +344,6 @@ public class SpinAttack : Skill
         Collider[] colls = Physics.OverlapSphere(caster.position, skillRange);
         foreach (Collider coll in colls)
         {
-            int damage = Random.Range(DataManager.Instance.minAtk + (int)skillDamage, DataManager.Instance.maxAtk + (int)skillDamage);
-            bool isCriticalHit = Random.value < DataManager.Instance.criticalHitChance;
-
             Enemy enemy = coll.GetComponent<Enemy>();
             if (enemy != null)
             {

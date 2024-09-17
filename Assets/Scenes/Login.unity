@@ -733,7 +733,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bgmSounds:
-  - soundName: Login
+  - soundName: Main
     clip: {fileID: 8300000, guid: fe0505420f7d9b943b7429f36219721c, type: 3}
   - soundName: Main
     clip: {fileID: 8300000, guid: fd942b7243e3dd249bd6e7d9b25b6d97, type: 3}
@@ -754,6 +754,38 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 01272370b6a6c46efa539424d1295436, type: 3}
   - soundName: "\uD544\uC0B4"
     clip: {fileID: 8300000, guid: 758aeeac2b9a64f75834c6cc74fccf1c, type: 3}
+  - soundName: "\uAC80"
+    clip: {fileID: 8300000, guid: a29a2006dc1851f41a2f0482f8a46c66, type: 3}
+  - soundName: "\uC624\uC18C\uC774"
+    clip: {fileID: 8300000, guid: 1a9e677892667468f82b2fcbbf28822f, type: 3}
+  - soundName: "\uC774\uCF00"
+    clip: {fileID: 8300000, guid: 460213ea8954a4e558d576a727d35c42, type: 3}
+  - soundName: "\uC624\uC640\uB9AC"
+    clip: {fileID: 8300000, guid: d071c2278331f4753bb15da529abc519, type: 3}
+  - soundName: "\uAE30\uBAA8\uC74C"
+    clip: {fileID: 8300000, guid: aee940efac05040fbb88af335ec14145, type: 3}
+  - soundName: "\uD53C\uACA91"
+    clip: {fileID: 8300000, guid: c0cc9bb81e32248d7b64b27359c13a43, type: 3}
+  - soundName: "\uD53C\uACA92"
+    clip: {fileID: 8300000, guid: 23e7ee0c4720c4bd48c405abb4ffa7f2, type: 3}
+  - soundName: "\uD53C\uACA93"
+    clip: {fileID: 8300000, guid: 14442038946004af3aaf906b64944b5f, type: 3}
+  - soundName: "\uD53C\uACA94"
+    clip: {fileID: 8300000, guid: 60e04cb188aff4081a59ce70a1ff20c9, type: 3}
+  - soundName: "\uD53C\uACA95"
+    clip: {fileID: 8300000, guid: 8b022f05317f74c7384d83d079aa4428, type: 3}
+  - soundName: "\uC0AC\uB9DD"
+    clip: {fileID: 8300000, guid: a547a21a0c17440fca7b13c6ebda770d, type: 3}
+  - soundName: "\uD53C\uACA96"
+    clip: {fileID: 8300000, guid: faf448bdff6ff4150a03b88b0d765916, type: 3}
+  - soundName: "\uBCF4\uC2A4 \uD53C\uACA9"
+    clip: {fileID: 8300000, guid: 5d6672d62cccfc64999f414fcf0caa28, type: 3}
+  - soundName: "\uBCF4\uC2A4 \uC0AC\uB9DD"
+    clip: {fileID: 8300000, guid: e7dd2179bed0f91468bccf7b4d43c1d4, type: 3}
+  - soundName: "\uBE0C\uB808\uC2A4"
+    clip: {fileID: 8300000, guid: 9c78446a351a7b4448b6af7b0b76b59c, type: 3}
+  - soundName: "\uAD6C\uB9E4"
+    clip: {fileID: 8300000, guid: 73ea6a8e4519e244f880b1c7d0f5c81a, type: 3}
   bgmPlayer: {fileID: 334466661}
   sfxPlayer:
   - {fileID: 334466667}
@@ -3097,6 +3129,56 @@ PrefabInstance:
       addedObject: {fileID: 54781962}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b8fa788eb3193314ab61988ad8f868a1, type: 3}
+--- !u!1 &1608219354
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1608219356}
+  - component: {fileID: 1608219355}
+  m_Layer: 0
+  m_Name: DataManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &1608219355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1608219354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff8a136f4d1926f4e873b34e2b59207f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 0}
+  playerNickname: 
+  minAtk: 10
+  maxAtk: 20
+  criticalHitChance: 0.2
+  criticalHitMultiplier: 1.5
+--- !u!4 &1608219356
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1608219354}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1689.3354, y: 226.20961, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1792090740
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4731,3 +4813,4 @@ SceneRoots:
   - {fileID: 1416279202}
   - {fileID: 334466663}
   - {fileID: 1244251352}
+  - {fileID: 1608219356}
