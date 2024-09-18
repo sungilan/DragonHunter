@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using TMPro;
-using UnityEditor.SearchService;
 
 public class LoadingScene : MonoBehaviour
 {

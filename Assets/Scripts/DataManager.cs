@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 public class DataManager : Singleton<DataManager>
 {
-    //public CharacterController player;
+    public CharacterData characterData;
     public string playerNickname;
     private DatabaseReference databaseReference;
     private FirebaseAuth auth;
@@ -66,11 +66,9 @@ public class DataManager : Singleton<DataManager>
             if (task.IsCompleted)
             {
                 DataSnapshot snapshot = task.Result;
-                Debug.Log("읽기 완료");
                 foreach (DataSnapshot data in snapshot.Children)
                 {
                     IDictionary Userdata = (IDictionary)data.Value;
-                    Debug.Log("닉네임 : " + Userdata["NickName"]);
                     playerNickname = Userdata["NickName"].ToString();
                 }
             }

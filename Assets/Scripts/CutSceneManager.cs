@@ -11,7 +11,7 @@ public class CutSceneManager : MonoBehaviour
 
     public bool isWin;
     public bool isLose;
-    private bool hasPlayedCutscene = false;  // 타임라인이 이미 재생되었는지 확인하는 변수
+    public bool hasPlayedCutscene = false;  // 타임라인이 이미 재생되었는지 확인하는 변수
 
     // Start is called before the first frame update
     void Start()
@@ -45,7 +45,7 @@ public class CutSceneManager : MonoBehaviour
     public void PlayBossCutscene()
     {
         pd.Play(ta[2]);
-        hasPlayedCutscene = true; // 타임라인이 재생되었음을 기록
+        hasPlayedCutscene = true;
     }
 
     // 필요하다면 다른 이벤트에 따라 타임라인을 재생하거나 리셋하는 메서드 추가 가능

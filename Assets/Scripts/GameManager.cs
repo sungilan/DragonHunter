@@ -1,27 +1,36 @@
+using System.Collections;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private Boss boss;
     [SerializeField] CutSceneManager cutSceneManager;
+    [SerializeField] private bool isBossDead = false;
 
-    void Start()
+    public void RegisterBoss(Boss newBoss)
     {
-        // Boss 객체를 찾거나 할당 (필요에 따라 직접 할당하거나 Find로 찾을 수 있음)
-        boss = FindObjectOfType<Boss>();
-
-        // 보스가 사망할 때 실행할 메서드 구독
         if (boss != null)
         {
-            boss.OnBossDeath += OnBossDeathHandler;
+            boss.OnBossDeath -= OnBossDeathHandler;  // 기존 보스의 구독 해제
         }
+
+        boss = newBoss;
+        boss.OnBossDeath += OnBossDeathHandler;  // 새 보스의 사망 이벤트 구독
+        isBossDead = false;
     }
 
     // 보스 사망 시 실행될 메서드
     private void OnBossDeathHandler()
     {
+        if (isBossDead) return;
         Debug.Log("GameManager에서 보스 사망 감지");
-        cutSceneManager.PlayLoseCutscene();
+        isBossDead = true;
+        StartCoroutine(BossDeath());
+    }
+    IEnumerator BossDeath()
+    {
+        cutSceneManager.PlayWinCutscene();
+        yield return new WaitForSeconds(5f);
         LoadingManager.Instance.LoadScene(2);
     }
 

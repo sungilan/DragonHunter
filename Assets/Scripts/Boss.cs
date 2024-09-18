@@ -6,11 +6,23 @@ using UnityEngine.Rendering.Universal;
 
 public class Boss : Enemy
 {
+
     // 델리게이트 선언
     public delegate void BossDeathHandler();
 
     // 델리게이트를 이벤트로 선언
     public event BossDeathHandler OnBossDeath;
+
+    [System.Serializable]
+    public struct EffectData
+    {
+        public GameObject effectPrefab;   // 이펙트 프리팹
+        public Transform effectPosition;  // 이펙트 생성 위치
+        public float destroyAfterSeconds; // 이펙트가 사라지기까지의 시간
+    }
+
+    // 이펙트 데이터를 리스트로 관리
+    [SerializeField] private List<EffectData> effectDataList;
 
     [SerializeField] private ParticleSystem fireBreath;
     [SerializeField] private DecalProjector attackRangeDecal;
@@ -23,23 +35,27 @@ public class Boss : Enemy
     Vector3 lookVec;
     Vector3 tauntVec;
     public bool isLook;
-    private Rigidbody rb;
-    private BoxCollider boxCollider;
+
     [SerializeField] private BoxCollider meleeArea;
     private NavMeshAgent nav;
     //private Animator anim;
     //private bool isDead;
     [SerializeField] private Transform target;
+    [SerializeField] private GameManager gameManager;
 
     void Awake()
     {
-        //rb = GetComponent<Rigidbody>();
-        //boxCollider = GetComponent<BoxCollider>();
         nav = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
 
         nav.isStopped = true;
         StartCoroutine(Think());
+    }
+
+    private void OnEnable()
+    {
+        // 보스가 활성화되었을 때 GameManager에 알림
+        gameManager.RegisterBoss(this);
     }
 
     void Update()
@@ -68,7 +84,6 @@ public class Boss : Enemy
 
     IEnumerator Think()
     {
-        Debug.Log("생각중");
         yield return new WaitForSeconds(0.1f);
         int ranAction = Random.Range(0, 4);
         switch (ranAction)
@@ -91,7 +106,11 @@ public class Boss : Enemy
     {
         SoundManager.Instance.PlaySE("브레스");
         anim.SetTrigger("FireBreath");
-        yield return new WaitForSeconds(2f);
+        // 현재 애니메이션 상태 정보 가져오기
+        AnimatorStateInfo stateInfo = anim.GetCurrentAnimatorStateInfo(0);
+
+        // 애니메이션의 실제 길이만큼 대기
+        yield return new WaitForSeconds(stateInfo.length);
 
         StartCoroutine(Think());
     }
@@ -103,12 +122,16 @@ public class Boss : Enemy
         nav.isStopped = false;
         //boxCollider.enabled = false;
         anim.SetTrigger("TakeDown");
+        // 현재 애니메이션 상태 정보 가져오기
+        AnimatorStateInfo stateInfo = anim.GetCurrentAnimatorStateInfo(0);
+
         yield return new WaitForSeconds(0.5f);
         meleeArea.enabled = true;
         yield return new WaitForSeconds(0.5f);
         meleeArea.enabled = false;
 
-        yield return new WaitForSeconds(1f);
+        // 애니메이션의 실제 길이만큼 대기
+        yield return new WaitForSeconds(stateInfo.length - 1f);
         isLook = true;
         nav.isStopped = true;
         //boxCollider.enabled = true;
@@ -120,7 +143,11 @@ public class Boss : Enemy
         tauntVec = target.position + lookVec;
 
         anim.SetTrigger("Meteo");
-        yield return new WaitForSeconds(1f);
+        // 현재 애니메이션 상태 정보 가져오기
+        AnimatorStateInfo stateInfo = anim.GetCurrentAnimatorStateInfo(0);
+
+        // 애니메이션의 실제 길이만큼 대기
+        yield return new WaitForSeconds(stateInfo.length);
 
         StartCoroutine(Think());
     }
@@ -128,7 +155,11 @@ public class Boss : Enemy
     IEnumerator Hurricane()
     {
         anim.SetTrigger("Hurricane");
-        yield return new WaitForSeconds(1.5f);
+        // 현재 애니메이션 상태 정보 가져오기
+        AnimatorStateInfo stateInfo = anim.GetCurrentAnimatorStateInfo(0);
+
+        // 애니메이션의 실제 길이만큼 대기
+        yield return new WaitForSeconds(stateInfo.length);
         StartCoroutine(Think());
     }
     public void ToggleFireBreath(int isActive)
@@ -144,7 +175,7 @@ public class Boss : Enemy
     }
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Player"))
+        if (other.CompareTag("Player"))
         {
             PlayerStatus playerHealth = other.GetComponentInParent<PlayerStatus>();
             int damage = Random.Range(minAtk, maxAtk);
@@ -152,9 +183,9 @@ public class Boss : Enemy
             bool isCriticalHit = Random.value < criticalHitChance;
 
             if (playerHealth != null)
-                {
-                    playerHealth.TakeDamage(damage, isCriticalHit);
-                }
+            {
+                playerHealth.TakeDamage(damage, isCriticalHit);
+            }
         }
     }
 
@@ -193,4 +224,74 @@ public class Boss : Enemy
     //        yield return new WaitForSeconds(1f);  // 각 타격 사이의 간격
     //    }
     //}
+    protected override IEnumerator TakeDamageCorutine(int _dmg, bool isCritical)
+    {
+        if (isDead) yield break;
+        isStun = true;
+        agent.isStopped = true;
+
+        if (currentHp > 0)
+        {
+            worldCanvasController.AddDamageText(transform.position + new Vector3(0, 1.5f, 0), _dmg, isCritical);
+            hpBarCanvas.gameObject.SetActive(true);
+            currentHp -= _dmg;
+            if (currentHp <= 0)
+            {
+                StartCoroutine(Death());  // 체력이 0 이하일 때 사망 처리
+                yield break;
+            }
+            int _random = Random.Range(0, sound_Hurt.Length);
+            SoundManager.Instance.PlaySE(sound_Hurt[_random]);
+            anim.SetTrigger("Hurt");
+            yield return new WaitForSeconds(1f);
+            isStun = false;
+            agent.isStopped = false;
+            hpBarCanvas.gameObject.SetActive(false);
+        }
+    }
+
+    protected override IEnumerator Death()
+    {
+        // 보스 전용 사망 처리 로직
+        Sprite coin = Resources.Load<Sprite>("Coin");
+        worldCanvasController.DropItem(transform.position + new Vector3(0, -0.5f, 0), coin);
+        currentHp = 0;
+        agent.enabled = false;
+        isWalking = false;
+        isRunning = false;
+
+        // 사망 이벤트 호출
+        if (OnBossDeath != null)
+        {
+            OnBossDeath.Invoke();
+        }
+
+        int _random = Random.Range(0, sound_Death.Length);
+        SoundManager.Instance.PlaySE(sound_Death[_random]);
+        anim.SetTrigger("Death");
+        isDead = true;
+
+        hpBarCanvas.gameObject.SetActive(false);
+
+        yield return new WaitForSeconds(4f);
+        Destroy(gameObject);
+    }
+
+    public void MakeEffect(int effectIndex)
+    {
+        if (effectIndex < 0 || effectIndex >= effectDataList.Count)
+            return;
+
+        EffectData data = effectDataList[effectIndex];
+        GameObject gm = Instantiate(data.effectPrefab, data.effectPosition.position, data.effectPosition.rotation);
+        gm.transform.parent = this.transform;
+        StartCoroutine(DestroyEffectAfterTime(gm, data.destroyAfterSeconds));
+    }
+
+    // 일정 시간 후 이펙트 삭제
+    private IEnumerator DestroyEffectAfterTime(GameObject effect, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Destroy(effect);
+    }
 }

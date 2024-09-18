@@ -177,9 +177,6 @@ public class SkillManager : Singleton<SkillManager>
                 skillSet[1] = new SpinAttack(6f, 30f, 4f, "È¸Ãµ");
                 skillSet[2] = new UltimateAttack(6f, 5f, 6f, "º®·ÂÀÏ¼¶");
                 SKillIconSet(0);
-                Debug.Log(skillSet[0].skillName);
-                Debug.Log(skillSet[1].skillName);
-                Debug.Log(skillSet[2].skillName);
                 break;
             case 1:
                 skillSet[0] = new Dash(1.2f, 3f, 2f, "Äí³ªÀÌ");

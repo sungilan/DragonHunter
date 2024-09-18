@@ -13,18 +13,17 @@ public class Enemy : MonoBehaviour
 
     [Header("EnemyInfo")]
     [SerializeField] private string enemyName;
-    [SerializeField] private int currentHp;
-    [SerializeField] private int maxHp;
-    [SerializeField] private float walkSpeed;
-    [SerializeField] private float runSpeed;
-    private float applySpeed;
+    [SerializeField] protected int currentHp;
+    [SerializeField] protected int maxHp;
+    [SerializeField] protected float walkSpeed;
+    [SerializeField] protected float runSpeed;
     private Vector3 direction;
 
     // 상태 변수
-    private bool isWalking;
-    private bool isRunning;
+    protected bool isWalking;
+    protected bool isRunning;
     [SerializeField] protected bool isDead;
-    private bool isStun;
+    protected bool isStun;
 
     [Header("Times")]
     [SerializeField] private float walkTime;
@@ -37,18 +36,18 @@ public class Enemy : MonoBehaviour
     [SerializeField] protected Animator anim;
     [SerializeField] private Rigidbody rigid;
     [SerializeField] private AudioClip[] sound_Nomal;
-    [SerializeField] private string[] sound_Hurt;
-    [SerializeField] private string[] sound_Death;
-    [SerializeField] private string sound_Attack;
-    private NavMeshAgent agent;
-    private FieldOfViewAngle fieldOfViewAngle;
+    [SerializeField] protected string[] sound_Hurt;
+    [SerializeField] protected string[] sound_Death;
+    [SerializeField] protected string sound_Attack;
+    protected NavMeshAgent agent;
+    protected FieldOfViewAngle fieldOfViewAngle;
 
     [Header("HpImages")]
-    [SerializeField] private Canvas hpBarCanvas;
-    [SerializeField] private Image hpBarIMG;
-    [SerializeField] private Image backHpBarIMG;
+    [SerializeField] protected Canvas hpBarCanvas;
+    [SerializeField] protected Image hpBarIMG;
+    [SerializeField] protected Image backHpBarIMG;
 
-    [SerializeField] private WorldCanvasController worldCanvasController;
+    [SerializeField] protected WorldCanvasController worldCanvasController;
     [SerializeField] private Camera mainCamera;
 
     public int minAtk = 10;
@@ -182,7 +181,7 @@ public class Enemy : MonoBehaviour
     {
         isWalking = false;
         isRunning = false;
-        applySpeed = walkSpeed;
+        //applySpeed = walkSpeed;
         anim.SetBool("Walking", isWalking);
         anim.SetBool("Running", isRunning);
         direction.Set(0f, Random.Range(0f, 360f), 0f);
@@ -208,7 +207,7 @@ public class Enemy : MonoBehaviour
         isWalking = true;
         anim.SetBool("Walking", isWalking);
         currentTime = walkTime;
-        applySpeed = walkSpeed;
+        //applySpeed = walkSpeed;
     }
 
     private void Taunt()
@@ -223,13 +222,13 @@ public class Enemy : MonoBehaviour
         anim.SetTrigger("Battlecry");
     }
 
-    public void TakeDamage(int _dmg, bool isCritical)
+    public virtual void TakeDamage(int _dmg, bool isCritical)
     {
         if (isDead) return;
         StartCoroutine(TakeDamageCorutine(_dmg, isCritical));
     }
 
-    public IEnumerator TakeDamageCorutine(int _dmg, bool isCritical)
+    protected virtual IEnumerator TakeDamageCorutine(int _dmg, bool isCritical)
     {
         isStun = true;
         agent.isStopped = true;
@@ -253,7 +252,7 @@ public class Enemy : MonoBehaviour
         }  
     }
 
-    private IEnumerator Death()
+    protected virtual IEnumerator Death()
     {
         Sprite coin = Resources.Load<Sprite>("Coin");
         worldCanvasController.DropItem(this.transform.position + new Vector3(0, -0.5f, 0), coin);

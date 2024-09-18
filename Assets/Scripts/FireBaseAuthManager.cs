@@ -6,6 +6,8 @@ using Firebase.Database;
 using System;
 using Firebase;
 using Firebase.Extensions;
+using Newtonsoft.Json;
+using static UnityEditor.Progress;
 
 public class FireBaseAuthManager : Singleton<FireBaseAuthManager>
 {
@@ -89,24 +91,39 @@ public class FireBaseAuthManager : Singleton<FireBaseAuthManager>
     }
     private void SaveUserProfile(string nickname)
     {
-        Debug.Log("닉네임 저장");
-        //nickname = JsonUtility.ToJson(nickname);
-        databaseReference.Child("Users").Child(user.UserId).Child("NickName").SetValueAsync(nickname);
-            //.ContinueWithOnMainThread(task =>
-        //{
-        //    if (task.IsCanceled)
-        //    {
-        //        Debug.LogError("닉네임 저장 취소");
-        //        return;
-        //    }
-        //    if (task.IsFaulted)
-        //    {
-        //        Debug.LogError("닉네임 저장 실패");
-        //        return;
-        //    }
-        Debug.Log("닉네임 저장 완료");
-        //});
+        // CharacterData 객체 생성
+        CharacterData newCharacterData = new CharacterData
+        {
+            nickName = nickname,
+            minAtk = 10,  // 기본 값
+            maxAtk = 20,  // 기본 값
+            criticalHitChance = 0.1f,  // 기본 값
+            criticalHitMultiplier = 1.5f,  // 기본 값
+            skillList = new List<string> { "Fireball", "IceBlast" },  // 기본 스킬
+            equipSlot = new Dictionary<string, Item>() // 기본 장비 슬롯
+        };
+
+        // CharacterData 객체를 JSON으로 변환 (Newtonsoft.Json 사용)
+        string jsonData = JsonConvert.SerializeObject(newCharacterData, Formatting.Indented);
+
+        // Firebase Database에 저장 (유저 ID를 기준으로)
+        databaseReference.Child("Users").Child(user.UserId).SetRawJsonValueAsync(jsonData)
+            .ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCanceled)
+                {
+                    Debug.LogError("캐릭터 데이터 저장 취소");
+                    return;
+                }
+                if (task.IsFaulted)
+                {
+                    Debug.LogError("캐릭터 데이터 저장 실패");
+                    return;
+                }
+                Debug.Log("캐릭터 데이터 저장 완료");
+            });
     }
+
     public void LogIn(string email, string password)
     {
         auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWith(task =>

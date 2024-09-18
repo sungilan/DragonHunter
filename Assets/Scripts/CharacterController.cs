@@ -24,7 +24,6 @@ public class CharacterController : MonoBehaviour
     {
         Vector2 moveInput = inputDirection;
         bool isMove = moveInput.magnitude != 0;
-        animator.SetBool("isMove", isMove);
 
         if (isMove)
         {
