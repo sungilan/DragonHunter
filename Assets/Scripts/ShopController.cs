@@ -6,13 +6,10 @@ public class ShopController : MonoBehaviour
 {
     public RectTransform contents;
     public ShopListItem shopListItemPrefab;
-
+    public Inventory inven;
 
     void Start()
     {
-        DataManager.Instance.gold = 1000000;
-
-        //데이터 로드
         DataManager.Instance.LoadData<ItemData>("Data/item_data");
         for (int i = 0; i < 15; i++)
         {
@@ -25,17 +22,36 @@ public class ShopController : MonoBehaviour
     }
     private void BuyItem(int itemid)
     {
-        var item = DataManager.Instance.GetData<ItemData>(itemid);
+        var itemData = DataManager.Instance.GetData<ItemData>(itemid);
         var gold = DataManager.Instance.gold;
-        var cost = item.cost;
+        var cost = itemData.cost;
         
 
         if (gold > cost)
         {
             SoundManager.Instance.PlaySE("구매");
-            Debug.Log(item.item_name + "를 구매했습니다!");
+            Debug.Log(itemData.item_name + "를 구매했습니다!");
+
+            // 아이템 SO를 Resources 폴더에서 로드합니다.
+            string itemPath = $"Items/Item_{itemid}";
+            Item item = Resources.Load<Item>(itemPath);
+            if (item == null)
+            {
+                Debug.LogError("아이템 SO를 로드할 수 없습니다. 경로: " + itemPath);
+                return;
+            }
+
+            // 데이터 업데이트
+            item.sprite_name = itemData.sprite_name;
+            item.item_name = itemData.item_name;
+            item.item_type = itemData.item_type;
+            item.stat = itemData.stat;
+            item.cost = itemData.cost;
+            item.value = itemData.value;
+
             gold -= cost;
             DataManager.Instance.gold = gold;
+            inven.AcquireItem(item, 1);
         }
         else
         {

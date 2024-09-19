@@ -10,14 +10,15 @@ using System.Collections.Generic;
 
 public class DataManager : Singleton<DataManager>
 {
-    public CharacterData characterData;
-    public string playerNickname;
+    public string nickname;
     private DatabaseReference databaseReference;
     private FirebaseAuth auth;
-    public int minAtk = 10;
-    public int maxAtk = 20;
-    public float criticalHitChance = 0.2f; // 20% 확률로 치명타 발생
-    public float criticalHitMultiplier = 1.5f;
+    public int hp;
+    public int minAtk;
+    public int maxAtk;
+    public int def;
+    public float criticalHitChance; // 20% 확률로 치명타 발생
+    public float criticalHitMultiplier;
     private int _gold;
     public delegate void GoldUpdated(int newGold);
     public static event GoldUpdated OnGoldUpdated;
@@ -38,6 +39,7 @@ public class DataManager : Singleton<DataManager>
 
     private void Start()
     {
+        _gold = 1000000;
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
         {
             if (task.IsFaulted || task.IsCanceled)
@@ -58,22 +60,59 @@ public class DataManager : Singleton<DataManager>
         });
     }
 
-    private void LoadUserProfile()
+    public void LoadUserProfile()
     {
-        databaseReference = FirebaseDatabase.DefaultInstance.GetReference("Users");
-        databaseReference.GetValueAsync().ContinueWith(task =>
+        var currentUser = auth.CurrentUser;
+        if (currentUser != null)
         {
-            if (task.IsCompleted)
+            databaseReference = FirebaseDatabase.DefaultInstance.GetReference("Users").Child(currentUser.UserId);
+            databaseReference.GetValueAsync().ContinueWith(task =>
             {
-                DataSnapshot snapshot = task.Result;
-                foreach (DataSnapshot data in snapshot.Children)
+                if (task.IsCompleted)
                 {
-                    IDictionary Userdata = (IDictionary)data.Value;
-                    playerNickname = Userdata["NickName"].ToString();
+                    DataSnapshot snapshot = task.Result;
+                    if (snapshot.Exists)
+                    {
+                        string jsonData = snapshot.GetRawJsonValue();
+                        PlayerData loadedPlayerData = JsonConvert.DeserializeObject<PlayerData>(jsonData);
+
+                        if (loadedPlayerData != null)
+                        {
+                            nickname = loadedPlayerData.nickName;
+                            hp = loadedPlayerData.hp;
+                            minAtk = loadedPlayerData.minAtk;
+                            maxAtk = loadedPlayerData.maxAtk;
+                            def = loadedPlayerData.def;
+                            // 나머지 데이터도 로드하여 적용
+                            criticalHitChance = loadedPlayerData.criticalHitChance;
+                            criticalHitMultiplier = loadedPlayerData.criticalHitMultiplier;
+                            Debug.Log($"닉네임: {loadedPlayerData.nickName}");
+                            Debug.Log($"최소 공격력: {loadedPlayerData.minAtk}");
+                            Debug.Log($"최대 공격력: {loadedPlayerData.maxAtk}");
+                        }
+                        else
+                        {
+                            Debug.LogError("PlayerData 역직렬화 실패");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("데이터가 존재하지 않습니다.");
+                    }
                 }
-            }
-        });
+                else
+                {
+                    Debug.LogError("PlayerData 로드 실패");
+                }
+            });
+        }
+        else
+        {
+            Debug.LogError("현재 로그인된 유저가 없습니다.");
+        }
     }
+
+
 
     public void LoadData<T>(string path) where T : RawData
     {
@@ -82,8 +121,7 @@ public class DataManager : Singleton<DataManager>
         var arrData = JsonConvert.DeserializeObject<T[]>(json);
         foreach (var data in arrData) 
         {
-            //this.dicData.Add(data.id, (T)data);
-            this.dicData[data.id] = (T)data; //키가 중복되면 덮어쓴다.
+            this.dicData[data.id] = (T)data;
         }
     }
     public T GetData<T>(int key) where T : RawData

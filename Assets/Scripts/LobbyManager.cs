@@ -21,7 +21,7 @@ public class LobbyManager : MonoBehaviour
     }
     private void Update()
     {
-        nicknameText.text = DataManager.Instance.playerNickname;
+        nicknameText.text = DataManager.Instance.nickname;
         goldText.text = DataManager.Instance.gold.ToString();
     }
 

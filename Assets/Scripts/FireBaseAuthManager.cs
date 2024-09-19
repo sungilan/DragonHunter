@@ -6,8 +6,8 @@ using Firebase.Database;
 using System;
 using Firebase;
 using Firebase.Extensions;
-using Newtonsoft.Json;
 using static UnityEditor.Progress;
+using Newtonsoft.Json;
 
 public class FireBaseAuthManager : Singleton<FireBaseAuthManager>
 {
@@ -85,45 +85,45 @@ public class FireBaseAuthManager : Singleton<FireBaseAuthManager>
             FirebaseUser user = authResult.User;
             Debug.Log(user.UserId + "회원가입 완료");
             Debug.Log("닉네임 : " + nickname);
-            // 닉네임을 Realtime Database에 저장
-            SaveUserProfile(nickname);
+            // 새로운 PlayerData 생성
+            PlayerData newPlayerData = new PlayerData(
+                nickname,          // 닉네임
+                100,               // 기본 체력
+                10,                // 기본 최소 공격력
+                20,                // 기본 최대 공격력
+                5,                 // 기본 방어력
+                0.1f,              // 기본 치명타 확률 (10%)
+                1.5f,              // 기본 치명타 배율
+                new List<Skill>(),               // 스킬 목록 (빈 리스트)
+                new Dictionary<string, Item>(),  // 장비 슬롯 (빈 딕셔너리)
+                0,                 // 초기 장비 공격력
+                0                  // 초기 Def
+            );
+            SaveUserProfile(newPlayerData);
         });
     }
-    private void SaveUserProfile(string nickname)
+    private void SaveUserProfile(PlayerData playerData)
     {
-        // CharacterData 객체 생성
-        CharacterData newCharacterData = new CharacterData
-        {
-            nickName = nickname,
-            minAtk = 10,  // 기본 값
-            maxAtk = 20,  // 기본 값
-            criticalHitChance = 0.1f,  // 기본 값
-            criticalHitMultiplier = 1.5f,  // 기본 값
-            skillList = new List<string> { "Fireball", "IceBlast" },  // 기본 스킬
-            equipSlot = new Dictionary<string, Item>() // 기본 장비 슬롯
-        };
+        Debug.Log("데이터 저장 시작");
+        string jsonData = JsonConvert.SerializeObject(playerData, Formatting.Indented);
 
-        // CharacterData 객체를 JSON으로 변환 (Newtonsoft.Json 사용)
-        string jsonData = JsonConvert.SerializeObject(newCharacterData, Formatting.Indented);
-
-        // Firebase Database에 저장 (유저 ID를 기준으로)
         databaseReference.Child("Users").Child(user.UserId).SetRawJsonValueAsync(jsonData)
-            .ContinueWithOnMainThread(task =>
+        .ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCanceled)
             {
-                if (task.IsCanceled)
-                {
-                    Debug.LogError("캐릭터 데이터 저장 취소");
-                    return;
-                }
-                if (task.IsFaulted)
-                {
-                    Debug.LogError("캐릭터 데이터 저장 실패");
-                    return;
-                }
-                Debug.Log("캐릭터 데이터 저장 완료");
-            });
-    }
+                Debug.LogError("플레이어 데이터 저장 취소");
+                return;
+            }
+            if (task.IsFaulted)
+            {
+                Debug.LogError("플레이어 데이터 저장 실패");
+                return;
+            }
 
+            Debug.Log("플레이어 데이터 저장 완료");
+        });
+    }
     public void LogIn(string email, string password)
     {
         auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWith(task =>
@@ -142,10 +142,40 @@ public class FireBaseAuthManager : Singleton<FireBaseAuthManager>
             FirebaseUser user = authResult.User;
             Debug.Log("로그인 완료");
             LoginState?.Invoke(true);
+
+            DataManager.Instance.LoadUserProfile();
         });
     }
     public void LogOut()
     {
         auth.SignOut();
+    }
+}
+public class PlayerData
+{
+    public string nickName;
+    public int hp;
+    public int minAtk;
+    public int maxAtk;
+    public int def;
+    public float criticalHitChance;
+    public float criticalHitMultiplier;
+    public List<Skill> skillList;
+    public Dictionary<string, Item> equipSlot = new Dictionary<string, Item>(); // 장비
+    public int equipAtk;
+    public int equipDef;
+    public PlayerData(string nickName, int hp, int minAtk, int maxAtk, int def, float criticalHitChance, float criticalHitMultiplier, List<Skill> skillList, Dictionary<string, Item> equipSlot, int equipAtk, int equipDps)
+    {
+        this.nickName = nickName;
+        this.hp = hp;
+        this.minAtk = minAtk;
+        this.maxAtk = maxAtk;
+        this.def = def;
+        this.criticalHitChance = criticalHitChance;
+        this.criticalHitMultiplier = criticalHitMultiplier;
+        this.skillList = skillList;
+        this.equipSlot = equipSlot;
+        this.equipAtk = equipAtk;
+        this.equipDef = equipDps;
     }
 }
